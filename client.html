@@ -31,8 +31,9 @@ output = document.getElementById("output");
  log("Command received: " + e.data);
  try {
   var result = eval(e.data);
+  log("Result: "+result);
  } catch(err) {
-  log(err)
+  log(err);
  }
  }
  
