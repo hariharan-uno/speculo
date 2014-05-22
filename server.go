@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
-	"github.com/gorilla/websocket"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/websocket"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +20,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+	go func() {
+		for {
+			_, r, err := ws.ReadMessage() //messageType is ignored
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(r))
+		}
+	}()
 	for scanner.Scan() {
 		inputcommand := []byte(scanner.Text())
 		if err := ws.WriteMessage(1, inputcommand); err != nil {
