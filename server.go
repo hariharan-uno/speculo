@@ -42,8 +42,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	http.Handle("/", http.FileServer(http.Dir(path)))
 	http.HandleFunc("/repl", handler)
+
 	fmt.Println("Open http://localhost:8080 and type js commands in the terminal!")
+
 	http.ListenAndServe(":8080", nil)
 }
