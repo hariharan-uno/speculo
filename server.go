@@ -38,7 +38,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	http.Handle("/", http.FileServer(http.Dir(path)))
 	http.HandleFunc("/repl", handler)
-	http.ListenAndServe(":6060", nil)
-
+	fmt.Println("Open http://localhost:8080 and type js commands in the terminal!")
+	http.ListenAndServe(":8080", nil)
 }

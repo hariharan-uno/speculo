@@ -1,5 +1,5 @@
 output = document.getElementById("output");
-ws = new WebSocket("ws://localhost:6060/repl");
+ws = new WebSocket("ws://localhost:8080/repl");
 
 // Listen for the connection open event then call the sendMessage function
 ws.onopen = function(e) {
