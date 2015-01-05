@@ -1,22 +1,30 @@
-##websocket-js-repl
+##speculo
 
-A simple REPL for javascript using websockets, written in Go.
+`speculo` is a simple REPL for javascript using websockets, written in Go.
 This lets you execute javascript in a browser window from the terminal.
 
 ###How to run
 
 Make sure you have Go installed and $GOPATH set.
 
-Run `go get github.com/hariharan-uno/websocket-js-repl`
+```bash
 
-Now, `cd` into the project folder and type `go run serve.go`
+$ go get github.com/hariharan-uno/speculo
+$ speculo
 
-Open localhost:8080 in your browser and control the page through js from the terminal.
+```
+
+Open localhost:8080 in your browser and control the web page through JavaScript from the terminal.
 
 ####Some Interesting commands to get you started
 
-`document.body.style.backgroundColor="#333";`
+```javascript
+document.body.style.backgroundColor="#333";
 
-`document.body.style.color="#f8f8f8";`
+document.body.style.color="#f8f8f8";
 
-`document.body.style.fontFamily="monospace";`
+document.body.style.fontFamily="monospace";
+```
+
+####Trivia
+`speculo` means mirror in latin.
