@@ -7,7 +7,7 @@ This lets you execute javascript in a browser window from the terminal.
 
 Make sure you have Go installed and $GOPATH set.
 
-```bash
+```sh
 
 $ go get github.com/hariharan-uno/speculo
 $ speculo
