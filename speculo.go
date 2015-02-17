@@ -5,36 +5,69 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/websocket"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func speculoHandler(w http.ResponseWriter, r *http.Request) {
-	scanner := bufio.NewScanner(os.Stdin)
 	ws, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 		return
 	}
+
+	oldState, err := terminal.MakeRaw(0)
+	if err != nil {
+		panic(err)
+	}
+	defer terminal.Restore(0, oldState)
+	term := terminal.NewTerminal(os.Stdin, "> ")
+
+	term.AutoCompleteCallback = func(line string, pos int, key rune) (newLine string, newPos int, ok bool) {
+		if key == '\x03' {
+			fmt.Println()
+			if oldState != nil {
+				terminal.Restore(0, oldState)
+			}
+			os.Exit(0)
+		}
+		return "", 0, false
+	}
+
 	go func() {
 		for {
 			_, r, err := ws.ReadMessage() // messageType is ignored
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(string(r))
+			term.Write(r)
+			term.Write([]byte("\n"))
 		}
 	}()
-	for scanner.Scan() {
-		inputcommand := []byte(scanner.Text())
+
+	for {
+		text, err := term.ReadLine()
+		if err != nil {
+			// Ctrl-D is EOF. So, quit without printing stacktrace.
+			if err == io.EOF {
+				fmt.Println()
+				if oldState != nil {
+					terminal.Restore(0, oldState)
+				}
+				os.Exit(0)
+			}
+			panic(err)
+		}
+		inputcommand := []byte(text)
 		if err := ws.WriteMessage(1, inputcommand); err != nil {
 			log.Println(err)
 		}
