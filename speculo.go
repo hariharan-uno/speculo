@@ -33,7 +33,7 @@ func speculoHandler(w http.ResponseWriter, r *http.Request) {
 	term := terminal.NewTerminal(os.Stdin, "> ")
 
 	term.AutoCompleteCallback = func(line string, pos int, key rune) (newLine string, newPos int, ok bool) {
-		if key == '\x03' {
+		if key == '\x03' { // Ctrl-C keycode is \x03
 			fmt.Println()
 			if oldState != nil {
 				terminal.Restore(0, oldState)
@@ -44,13 +44,14 @@ func speculoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
+		newline := []byte("\n")
 		for {
 			_, r, err := ws.ReadMessage() // messageType is ignored
 			if err != nil {
 				log.Fatal(err)
 			}
 			term.Write(r)
-			term.Write([]byte("\n"))
+			term.Write(newline)
 		}
 	}()
 
