@@ -21,7 +21,7 @@ func speculoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not a websocket handshake", 400)
 		return
 	} else if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
@@ -34,21 +34,25 @@ func speculoHandler(w http.ResponseWriter, r *http.Request) {
 
 	term.AutoCompleteCallback = func(line string, pos int, key rune) (newLine string, newPos int, ok bool) {
 		if key == '\x03' { // Ctrl-C keycode is \x03
-			fmt.Println()
-			if oldState != nil {
-				terminal.Restore(0, oldState)
-			}
-			os.Exit(0)
+			cleanAndExit(oldState)
 		}
 		return "", 0, false
 	}
+
+	notify := w.(http.CloseNotifier).CloseNotify()
+
+	go func() {
+		<-notify
+		cleanAndExit(oldState)
+	}()
 
 	go func() {
 		newline := []byte("\n")
 		for {
 			_, r, err := ws.ReadMessage() // messageType is ignored
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				return
 			}
 			term.Write(r)
 			term.Write(newline)
@@ -60,22 +64,31 @@ func speculoHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			// Ctrl-D is EOF. So, quit without printing stacktrace.
 			if err == io.EOF {
-				fmt.Println()
-				if oldState != nil {
-					terminal.Restore(0, oldState)
-				}
-				os.Exit(0)
+				cleanAndExit(oldState)
 			}
-			panic(err)
+			log.Println(err)
+			return
 		}
 		inputcommand := []byte(text)
 		if err := ws.WriteMessage(1, inputcommand); err != nil {
 			log.Println(err)
+			return
 		}
 	}
 }
 
+func cleanAndExit(oldState *terminal.State) {
+	fmt.Println()
+	if oldState != nil {
+		terminal.Restore(0, oldState)
+	}
+	os.Exit(0)
+}
+
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("speculo: ")
+
 	path, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
